@@ -1,5 +1,5 @@
 #### R Script CVOO size distribution plots
-# Author: H.Hauss (hhauss@geomar.de) & Nele Weigt
+# Author: H.Hauss (hhauss@geomar.de)
 # Read in Ecotaxa files, calculate abundance in size bins
 # plot abundance vs. size
 
@@ -13,29 +13,19 @@ library(gridExtra)
 library(mltools)
 library(Hmisc)
 
-## path on Nele's PC
-setwd("C:/Users/Nele/Desktop/6. Semester/BACHELORARBEIT/Ecotaxa_Daten/Datensätze") 
-
-## path on Leni's PC
 ## working directory
-setwd("V:/Daten/Students/NeleWeigt/ecotaxa_export") 
+setwd("V:/Daten/Cruises/GOSars_multinet") 
 file_list <- list.files(pattern="*.tsv") # create list of all .tsv files in that folder
 print(file_list)
 ##read in all ecotaxa tsvs and 
 data_raw <- do.call(rbind,lapply(file_list,read.csv, header=TRUE, quote = '"', sep = "\t"))[ ,c('sample_id','object_annotation_category','object_annotation_hierarchy', 'object_date', 'object_time', 'object_depth_min', 'object_depth_max', 'object_area', 'sample_volconc')]
-data_raw <- dplyr::filter(data_raw, !grepl('m105_mn01', sample_id))
-memory.limit()
+
 ## filter living
 data <- data_raw[-grep("not-living", data_raw$object_annotation_hierarchy),] 
 
 rm(data_raw)
 
-## split string to assign cruise, haul and net numbers
-data$cruise  <-   unlist(lapply(strsplit(as.character(data$sample_id), "_"), '[[', 1))
-data$haul_id <-   unlist(lapply(strsplit(as.character(data$sample_id), "_"), '[[', 2))
-data$net_id  <-   unlist(lapply(strsplit(as.character(data$sample_id), "_"), '[[', 3))
-
-## assign variables
+## rename some variables
 data$date <- data$object_date
 data$time <- data$object_time
 data$depth_min <- data$object_depth_min
@@ -43,11 +33,8 @@ data$depth_max <- data$object_depth_max
 data$depth_mid <- (data$object_depth_max +data$object_depth_min)/2
 data$spec_id <- data$object_annotation_category
 
-## neue Variable
+## convert pixel area to square mm
 data$object_area_mm2 <- data$object_area* 0.00011236
-
-## convert from ml to m3 for concentrated volume
-data$sample_volconc_m3 <- (data$sample_volconc)#/1000000 
 
 # Define the size bins
 data["size_bin"] <- bin_data (data$object_area_mm, 
