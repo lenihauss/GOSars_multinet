@@ -1,14 +1,9 @@
-#### R Script CVOO distribution plots
+#### R Script GO Sars distribution plots
 # Author: H.Hauss (hhauss@geomar.de)
 # Read ecotaxa output, calculate individual biomass, aggregate to depth 
-#layers, plot
+#layers, plot vertical distribution
 
-library(stringr)
-library(raster)
 library(ggplot2)
-library(dplyr)
-library(gridExtra)
-library(tidyr)
 
 ## working directory
 setwd("V:/Daten/Cruises/GOSars_multinet") 
@@ -49,161 +44,39 @@ data$biomass_ug <- with(data,
                                                     44.78*data$area_mm2^1.56)))))
  
 
-layers <- aggregate(biomass_ug ~ (sample_id+net_id+spec_id+depth_min+depth_max+depth_mid+
-                                 sample_volconc), data, length) 
-layers$count <- layers$spec_id
-layers$abundance_m3 <- layers$count /layers$sample_volconc
+layers <- do.call("rbind", by(data, data[1:5], with, 
+                              data.frame(sample_id = sample_id[1], 
+                                         net_id = net_id[1],
+                                         depth_min = depth_min[1], 
+                                         depth_max = depth_max[1],
+                                         depth_mid = depth_mid[1],
+                                         sample_volconc = sample_volconc[1],
+                                         spec_id = spec_id[1], 
+                                         count = length(biomass_ug), biomass_ug = sum(biomass_ug))))
+  
+layers$abundance_m3 <- layers$count/layers$sample_volconc
+layers$biomass_ug_m3 <- layers$biomass_ug/layers$sample_volconc
 
-biomass <- aggregate(biomass_ug ~ (sample_id+sample_volconc), data, sum)
-biomass$biomass_m3 <- biomass$biomass /biomass$sample_volconc
-str(biomass)
-
-layers_allfractions <- aggregate(abundance_m3 ~ (cruise+haul_id+net_id+date+time+depth_min+depth_max+depth_mid), layers, sum)
-
-biomass <- aggregate(biomass_m3 ~ (cruise+haul_id+net_id+date+time+depth_min+depth_max+depth_mid), biomass, sum)
+abundance <- aggregate(abundance_m3 ~ (net_id+spec_id+depth_min+depth_max+depth_mid), layers, sum)
+biomass   <- aggregate(biomass_ug_m3 ~ (net_id+spec_id+depth_min+depth_max+depth_mid), layers, sum)
 
 ##Plots:
 
-## October_2012
-cvoo_night_20121024 <- subset(biomass, cruise =="msm22" & haul_id == "mn01")
-cvoo_day_20121024<- subset(biomass, cruise =="msm22" & haul_id == "mn02")
-
-p1 <- ggplot(data=cvoo_day_20121024, aes(x=depth_mid, y=biomass_m3 , width=(depth_max-depth_min)))+
+## vertical distribution barplot
+#abundance
+ggplot(data=abundance, aes(x=depth_mid, y=abundance_m3 , fill=spec_id, width=(depth_max-depth_min))) +
+  geom_col() +
   coord_flip() + 
-  scale_y_continuous(limits=c(-60000, 60000), breaks=seq(-60000, 60000, 20000))+    
-  scale_x_reverse(limits=c(1000,0), breaks=seq(0,1000,200)) +
-  geom_hline(aes(yintercept=0)) +
-  geom_bar(data=cvoo_night_20121024, aes(y=biomass_m3*(-1)), fill='black', stat="identity") + 
-  geom_bar(data=cvoo_day_20121024, aes(y=biomass_m3),fill='grey', stat="identity")+ 
+  scale_x_reverse(limits=c(250,0), breaks=seq(0,250,50)) +
+  labs(title = "Abundance",x = "Depth (m)", y = "Abundance (ind/m^3")+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        panel.background = element_blank(), axis.line = element_line(colour = "black"))+
-  labs(title = "October_2012",x = "Depth (m)", y = "")
+        panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
-
-## November_2012
-cvoo_night_20121024_1 <- subset(biomass, cruise =="msm22" & haul_id == "mn34")
-cvoo_day_20121024_1<- subset(biomass, cruise =="msm22" & haul_id == "mn35")
-
-p2 <- ggplot(data=cvoo_day_20121024_1, aes(x=depth_mid, y=biomass_m3 , width=(depth_max-depth_min)))+
+##biomass
+ggplot(data=biomass, aes(x=depth_mid, y=(biomass_ug_m3)/1000 , fill=spec_id, width=(depth_max-depth_min))) +
+  geom_col() +
   coord_flip() + 
-  scale_y_continuous(limits=c(-60000, 60000), breaks=seq(-60000, 60000, 20000))+    
-  scale_x_reverse(limits=c(1000,0), breaks=seq(0,1000,200)) +
-  geom_hline(aes(yintercept=0)) +
-  geom_bar(data=cvoo_night_20121024_1, aes(y=biomass_m3*(-1)), fill='black', stat="identity") + 
-  geom_bar(data=cvoo_day_20121024_1, aes(y=biomass_m3),fill='grey', stat="identity")+ 
+  scale_x_reverse(limits=c(250,0), breaks=seq(0,250,50)) +
+  labs(title = "Biomass",x = "Depth (m)", y = "Biomass (mg/m^3)")+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        panel.background = element_blank(), axis.line = element_line(colour = "black"))+
-  labs(title = "November_2012",x = "", y = "")
-
-
-## May_2013
-cvoo_lrg_night_052013 <- subset(biomass, cruise =="m097" & haul_id == "mn01")
-cvoo_lrg_day_052013 <- subset(biomass, cruise =="m097" & haul_id == "mn02")
-
-p3 <- ggplot(data=cvoo_lrg_day_052013, aes(x=depth_mid, y=biomass_m3 , width=(depth_max-depth_min)))+
-  coord_flip() + 
-  scale_y_continuous(limits=c(-60000, 60000), breaks=seq(-60000, 60000, 20000))+    
-  scale_x_reverse(limits=c(1000,0), breaks=seq(0,1000,200)) +
-  geom_hline(aes(yintercept=0)) +
-  geom_bar(data=cvoo_lrg_night_052013, aes(y=biomass_m3*(-1)), fill='black', stat="identity") + 
-  geom_bar(data=cvoo_lrg_day_052013, aes(y=biomass_m3),fill='grey', stat="identity")+ 
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        panel.background = element_blank(), axis.line = element_line(colour = "black"))+
-  labs(title = "May_2013",x = "", y = "")
-
-
-## March_2014
-cvoo_lrg_night_032014 <- subset(biomass, cruise =="m105" & haul_id == "mn06")
-cvoo_lrg_day_032014 <- subset(biomass, cruise =="m105" & haul_id == "mn05")
-
-p4 <- ggplot(data=cvoo_lrg_day_032014, aes(x=depth_mid, y=biomass_m3 , width=(depth_max-depth_min)))+
-  coord_flip() + 
-  scale_y_continuous(limits=c(-60000, 60000), breaks=seq(-60000, 60000, 20000))+    
-  scale_x_reverse(limits=c(1000,0), breaks=seq(0,1000,200)) +
-  geom_hline(aes(yintercept=0)) +
-  geom_bar(data=cvoo_lrg_night_032014, aes(y=biomass_m3*(-1)), fill='black', stat="identity") + 
-  geom_bar(data=cvoo_lrg_day_032014, aes(y=biomass_m3),fill='grey', stat="identity")+ 
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        panel.background = element_blank(), axis.line = element_line(colour = "black"))+
-  labs(title = "March_2014",x = "Depth (m)", y = "")
-
-
-## April_2014
-cvoo_lrg_night_042014 <- subset(biomass, cruise =="m106" & haul_id == "mn01")
-cvoo_lrg_day_042014 <-subset(biomass, cruise =="m106" & haul_id == "mn02")
-
-p5 <- ggplot(data=cvoo_lrg_night_042014, aes(x=depth_mid, y=biomass_m3 , width=(depth_max-depth_min)))+
-  coord_flip() + 
-  scale_y_continuous(limits=c(-60000, 60000), breaks=seq(-60000, 60000, 20000))+    
-  scale_x_reverse(limits=c(1000,0), breaks=seq(0,1000,200)) +
-  geom_hline(aes(yintercept=0)) +
-  geom_bar(data=cvoo_lrg_night_042014, aes(y=biomass_m3*(-1)), fill='black', stat="identity") + 
-  geom_bar(data=cvoo_lrg_day_042014, aes(y=biomass_m3),fill='grey', stat="identity")+ 
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        panel.background = element_blank(), axis.line = element_line(colour = "black"))+
-  labs(title = "April_2014",x = "", y = "")
-
-
-## September_2015
-cvoo_lrg_night_092015 <- subset(biomass, cruise =="m119" & haul_id == "mn01")
-cvoo_lrg_day_092015 <- subset(biomass, cruise =="m119" & haul_id == "mn03")
-
-p6 <- ggplot(data=cvoo_lrg_day_092015, aes(x=depth_mid, y=biomass_m3 , width=(depth_max-depth_min)))+
-  coord_flip() + 
-  scale_y_continuous(limits=c(-60000, 60000), breaks=seq(-60000, 60000, 20000))+    
-  scale_x_reverse(limits=c(1000,0), breaks=seq(0,1000,200)) +
-  geom_hline(aes(yintercept=0)) +
-  geom_bar(data=cvoo_lrg_night_092015, aes(y=biomass_m3*(-1)), fill='black', stat="identity") + 
-  geom_bar(data=cvoo_lrg_day_092015, aes(y=biomass_m3),fill='grey', stat="identity")+ 
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        panel.background = element_blank(), axis.line = element_line(colour = "black"))+
-  labs(title = "September_2015",x = "", y = "")
-
-
-## August_2016
-cvoo_lrg_night_082016 <- subset(biomass, cruise =="m130" & haul_id == "mn01")
-cvoo_lrg_day_082016 <- subset(biomass, cruise =="m130" & haul_id == "mn02")
-
-p7 <- ggplot(data=cvoo_lrg_night_082016, aes(x=depth_mid, y=biomass_m3 , width=(depth_max-depth_min)))+
-  coord_flip() + 
-  scale_y_continuous(limits=c(-60000, 60000), breaks=seq(-60000, 60000, 20000))+    
-  scale_x_reverse(limits=c(1000,0), breaks=seq(0,1000,200)) +
-  geom_hline(aes(yintercept=0)) +
-  geom_bar(data=cvoo_lrg_day_082016, aes(y=biomass_m3*(-1)), fill='black', stat="identity") + 
-  geom_bar(data=cvoo_lrg_night_082016, aes(y=biomass_m3),fill='grey', stat="identity")+ 
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        panel.background = element_blank(), axis.line = element_line(colour = "black"))+
-  labs(title = "August_2016",x = "Depth (m)", y = bquote('Biomass ('*µg / m^3*')'))
-
-##February_2018
-cvoo_lrg_night_022018 <- subset(biomass, cruise =="pos520" & haul_id == "mn08")
-cvoo_lrg_day_022018 <- subset(biomass, cruise =="pos520" & haul_id == "mn09")
-
-p8 <-ggplot(data=cvoo_lrg_night_022018, aes(x=depth_mid, y=biomass_m3 , width=(depth_max-depth_min)))+
-  coord_flip() + 
-  scale_y_continuous(limits=c(-60000, 60000), breaks=seq(-60000, 60000, 20000))+    
-  scale_x_reverse(limits=c(1000,0), breaks=seq(0,1000,200)) +
-  geom_hline(aes(yintercept=0)) +
-  geom_bar(data=cvoo_lrg_day_022018, aes(y=biomass_m3*(-1)), fill='black', stat="identity") + 
-  geom_bar(data=cvoo_lrg_night_022018, aes(y=biomass_m3),fill='grey', stat="identity")+ 
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        panel.background = element_blank(), axis.line = element_line(colour = "black"))+
-  labs(title = "February_2018",x = "", y = bquote('Biomass ('*µg / m^3*')'))
-
-##February_2019
-cvoo_lrg_night_022019 <- subset(biomass, cruise =="pos532" & haul_id == "mn05")
-cvoo_lrg_day_022019 <- subset(biomass, cruise =="pos532" & haul_id == "mn06")
-
-p9 <-ggplot(data=cvoo_lrg_night_022019, aes(x=depth_mid, y=biomass_m3 , width=(depth_max-depth_min)))+
-  coord_flip() + 
-  scale_y_continuous(limits=c(-60000, 60000), breaks=seq(-60000, 60000, 20000))+    
-  scale_x_reverse(limits=c(1000,0), breaks=seq(0,1000,200)) +
-  geom_hline(aes(yintercept=0)) +
-  geom_bar(data=cvoo_lrg_day_022019, aes(y=biomass_m3*(-1)), fill='black', stat="identity") + 
-  geom_bar(data=cvoo_lrg_night_022019, aes(y=biomass_m3),fill='grey', stat="identity")+ 
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        panel.background = element_blank(), axis.line = element_line(colour = "black"))+
-  labs(title = "February_2019",x = "", y = bquote('Biomass ('*µg / m^3*')'))
-
-grid.arrange(p1,p2, p3, p4, p5, p6, p7, p8, p9, nrow = 3, top = "Over-all Biomass")
- 
+        panel.background = element_blank(), axis.line = element_line(colour = "black"))
