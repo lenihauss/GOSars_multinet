@@ -8,4 +8,4 @@ https://ecotaxa.obs-vlfr.fr/prj/6145
 
 ![](./examples.png)
 
-![](./size_distribution.pdf)
+![](./size_distribution.png)
