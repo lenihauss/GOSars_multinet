@@ -64,19 +64,24 @@ biomass   <- aggregate(biomass_ug_m3 ~ (net_id+spec_id+depth_min+depth_max+depth
 
 ## vertical distribution barplot
 #abundance
-ggplot(data=abundance, aes(x=depth_mid, y=abundance_m3 , fill=spec_id, width=(depth_max-depth_min))) +
+p1 <-ggplot(data=abundance, aes(x=depth_mid, y=abundance_m3 , fill=spec_id, width=(depth_max-depth_min))) +
   geom_col() +
   coord_flip() + 
   scale_x_reverse(limits=c(250,0), breaks=seq(0,250,50)) +
   labs(title = "Abundance",x = "Depth (m)", y = "Abundance (ind/m^3")+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  theme(legend.position="none", panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
 ##biomass
-ggplot(data=biomass, aes(x=depth_mid, y=(biomass_ug_m3)/1000 , fill=spec_id, width=(depth_max-depth_min))) +
+p2 <- ggplot(data=biomass, aes(x=depth_mid, y=(biomass_ug_m3)/1000 , fill=spec_id, width=(depth_max-depth_min))) +
   geom_col() +
   coord_flip() + 
   scale_x_reverse(limits=c(250,0), breaks=seq(0,250,50)) +
-  labs(title = "Biomass",x = "Depth (m)", y = "Biomass (mg/m^3)")+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  labs(title = "Biomass",x = "Depth (m)", y = "Biomass (mg/m^3)", fill="Group")+
+  theme(legend.position=c(.8,.75), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), axis.line = element_line(colour = "black"))
+
+
+all <- ggarrange(p1, p2, ncol=2, nrow=1)
+all
+ggsave("Abundance_Biomass.png", width = 9, height = 9, bg = "transparent")
