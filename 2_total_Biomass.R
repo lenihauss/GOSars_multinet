@@ -4,7 +4,8 @@
 #layers, plot vertical distribution
 
 library(ggplot2)
-
+library(dplyr)
+library(ggpubr)
 ## working directory
 setwd("V:/Daten/Cruises/GOSars_multinet") 
 
@@ -43,7 +44,6 @@ data$biomass_ug <- with(data,
                                              ifelse(grepl("Gastropoda", annotation_hierarchy),43.38*data $area_mm2^1.54,
                                                     44.78*data$area_mm2^1.56)))))
  
-
 layers <- do.call("rbind", by(data, data[1:5], with, 
                               data.frame(sample_id = sample_id[1], 
                                          net_id = net_id[1],
@@ -53,7 +53,10 @@ layers <- do.call("rbind", by(data, data[1:5], with,
                                          sample_volconc = sample_volconc[1],
                                          spec_id = spec_id[1], 
                                          count = length(biomass_ug), biomass_ug = sum(biomass_ug))))
-  
+
+#filter for main groups
+layers <- filter(layers, spec_id %in%  c("Calanoida", "Calanus", "Metridinidae", "Centropages", "Oithona", "Oncaea", "Euphausiacea", "Chaetognatha", "Actinopterygii"))
+
 layers$abundance_m3 <- layers$count/layers$sample_volconc
 layers$biomass_ug_m3 <- layers$biomass_ug/layers$sample_volconc
 
@@ -64,19 +67,24 @@ biomass   <- aggregate(biomass_ug_m3 ~ (net_id+spec_id+depth_min+depth_max+depth
 
 ## vertical distribution barplot
 #abundance
-ggplot(data=abundance, aes(x=depth_mid, y=abundance_m3 , fill=spec_id, width=(depth_max-depth_min))) +
+p1 <-ggplot(data=abundance, aes(x=depth_mid, y=abundance_m3 , fill=spec_id, width=(depth_max-depth_min))) +
   geom_col() +
   coord_flip() + 
   scale_x_reverse(limits=c(250,0), breaks=seq(0,250,50)) +
   labs(title = "Abundance",x = "Depth (m)", y = "Abundance (ind/m^3")+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  theme(legend.position="none", panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
 ##biomass
-ggplot(data=biomass, aes(x=depth_mid, y=(biomass_ug_m3)/1000 , fill=spec_id, width=(depth_max-depth_min))) +
+p2 <- ggplot(data=biomass, aes(x=depth_mid, y=(biomass_ug_m3)/1000 , fill=spec_id, width=(depth_max-depth_min))) +
   geom_col() +
   coord_flip() + 
   scale_x_reverse(limits=c(250,0), breaks=seq(0,250,50)) +
-  labs(title = "Biomass",x = "Depth (m)", y = "Biomass (mg/m^3)")+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  labs(title = "Biomass",x = "Depth (m)", y = "Biomass (mg/m^3)", fill="Group")+
+  theme(legend.position=c(.8,.75), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), axis.line = element_line(colour = "black"))
+
+
+all <- ggarrange(p1, p2, ncol=2, nrow=1)
+all
+ggsave("Abundance_Biomass.png", width = 9, height = 9, bg = "transparent")
