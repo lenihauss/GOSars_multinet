@@ -87,4 +87,8 @@ p2 <- ggplot(data=biomass, aes(x=depth_mid, y=(biomass_ug_m3)/1000 , fill=spec_i
 
 all <- ggarrange(p1, p2, ncol=2, nrow=1)
 all
-ggsave("Abundance_Biomass.png", width = 9, height = 9, bg = "transparent")<<<<<<< HEAD
+<<<<<<< HEAD
+ggsave("Abundance_Biomass.png", width = 9, height = 9, bg = "transparent")
+=======
+ggsave("Abundance_Biomass.png", width = 9, height = 9, bg = "transparent")
+>>>>>>> cafd195165216818c1ab22669012ee105b1d0fd6
