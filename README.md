@@ -9,7 +9,7 @@ Exported data were used to estimate individual biomass according to Lehette & He
 
 ![](./examples.png)
 ![](./C_finmarchicus.png)
-Figure 1. Example images.
+Figure 1. Example images. Note lipid reserve in C.finmarchicus.
 
 Most of the biomass was contributed by larger organisms (krill and fish) but small copepods are more abundant. Among the copepods, C.finmarchicus plays a large role both in terms of biomass and abundance.
 ![](./Abundance_Biomass.png)
