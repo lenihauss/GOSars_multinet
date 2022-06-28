@@ -8,6 +8,7 @@ https://ecotaxa.obs-vlfr.fr/prj/6145
 Exported data were used to estimate individual biomass according to Lehette & Hernandez-Leon (2006) and aggregated to depth layers.
 
 ![](./examples.png)
+![](./C_finmarchicus.png)
 Figure 1. Example images.
 
 Most of the biomass was contributed by larger organisms (krill and fish) but small copepods are more abundant. Among the copepods, C.finmarchicus plays a large role both in terms of biomass and abundance.
