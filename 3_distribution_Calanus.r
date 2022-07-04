@@ -79,6 +79,7 @@ layers$abundance_m3 <- layers$count/layers$sample_volconc
 layers$biomass_ug_m3 <- layers$biomass_ug/layers$sample_volconc
 
 abundance <- aggregate(abundance_m3 ~ (net_id+spec_id+depth_min+depth_max+depth_mid), layers, sum)
+write.table(abundance, file = "Calanus_abundance.txt")
 biomass   <- aggregate(biomass_ug_m3 ~ (net_id+spec_id+depth_min+depth_max+depth_mid), layers, sum)
 
 ##Plots:

@@ -89,4 +89,4 @@ p6<-ggplot(chaetognatha, aes(x=biomass_ug)) +
 
 all <- ggarrange(p1, p2, p3, p4, p5, p6, ncol=3, nrow=2)
 all
-ggsave("size_distribution.pdf", width = 9, height = 9, bg = "transparent")
+ggsave("size_distribution.png", width = 9, height = 9, bg = "transparent")
