@@ -62,7 +62,8 @@ layers$biomass_ug_m3 <- layers$biomass_ug/layers$sample_volconc
 
 abundance <- aggregate(abundance_m3 ~ (net_id+spec_id+depth_min+depth_max+depth_mid), layers, sum)
 biomass   <- aggregate(biomass_ug_m3 ~ (net_id+spec_id+depth_min+depth_max+depth_mid), layers, sum)
-
+write.table(abundance, file = "abundance_all.txt")
+write.table(biomass, file = "biomass_all.txt")
 ##Plots:
 
 ## vertical distribution barplot
@@ -87,8 +88,6 @@ p2 <- ggplot(data=biomass, aes(x=depth_mid, y=(biomass_ug_m3)/1000 , fill=spec_i
 
 all <- ggarrange(p1, p2, ncol=2, nrow=1)
 all
-<<<<<<< HEAD
+
 ggsave("Abundance_Biomass.png", width = 9, height = 9, bg = "transparent")
-=======
-ggsave("Abundance_Biomass.png", width = 9, height = 9, bg = "transparent")
->>>>>>> cafd195165216818c1ab22669012ee105b1d0fd6
+
