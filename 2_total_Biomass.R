@@ -54,6 +54,8 @@ layers <- do.call("rbind", by(data, data[1:5], with,
                                          spec_id = spec_id[1], 
                                          count = length(biomass_ug), biomass_ug = sum(biomass_ug))))
 
+
+
 #filter for main groups
 layers <- filter(layers, spec_id %in%  c("Calanoida", "Calanus", "Metridinidae", "Centropages", "Oithona", "Oncaea", "Euphausiacea", "Chaetognatha", "Actinopterygii"))
 
